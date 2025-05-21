@@ -1,15 +1,15 @@
 import { saveAs } from 'file-saver';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { TranscriptionResponse } from '@shared/schema';
 
 /**
  * Generates and downloads a PDF file containing the transcription
- * @param transcriptionText The transcription text to include in PDF
- * @param speakers Optional speaker information for diarization
+ * @param data The transcription data to include in PDF
  */
 export async function downloadTranscriptionAsPDF(
-  transcriptionText: string,
-  speakers?: Array<{ speaker: string; text: string; start: number; end: number }>
+  data: TranscriptionResponse
 ): Promise<void> {
+  const { text, utterances } = data;
   // Create a temporary element to render the PDF content
   const element = document.createElement('div');
   element.style.position = 'absolute';
@@ -19,15 +19,16 @@ export async function downloadTranscriptionAsPDF(
   // Format the transcription text
   let content = '';
   
-  if (speakers && speakers.length > 0) {
+  if (utterances && utterances.length > 0) {
     // Format with speaker diarization
-    content = speakers.map(item => {
+    content = utterances.map(item => {
       const timestamp = formatTimestamp(item.start, item.end);
-      return `<p><strong>${item.speaker}</strong> [${timestamp}]: ${item.text}</p>`;
+      const speaker = item.speaker ? `Speaker ${item.speaker}` : 'Speaker';
+      return `<p><strong>${speaker}</strong> [${timestamp}]: ${item.text}</p>`;
     }).join('');
   } else {
     // Simple format without speakers
-    content = `<p>${transcriptionText}</p>`;
+    content = `<p>${text || ''}</p>`;
   }
   
   element.innerHTML = `
@@ -43,7 +44,7 @@ export async function downloadTranscriptionAsPDF(
     
     // In a real implementation, we'd use a server-side PDF generation service
     // or a full PDF library. For now, we'll create a simple blob with the text
-    const blob = new Blob([transcriptionText], { type: 'application/pdf' });
+    const blob = new Blob([content], { type: 'application/pdf' });
     saveAs(blob, filename);
     
   } finally {
@@ -53,13 +54,12 @@ export async function downloadTranscriptionAsPDF(
 
 /**
  * Generates and downloads a DOCX file containing the transcription
- * @param transcriptionText The transcription text to include in DOCX
- * @param speakers Optional speaker information for diarization
+ * @param data The transcription data to include in DOCX
  */
 export async function downloadTranscriptionAsDOCX(
-  transcriptionText: string,
-  speakers?: Array<{ speaker: string; text: string; start: number; end: number }>
+  data: TranscriptionResponse
 ): Promise<void> {
+  const { text, utterances } = data;
   // Create document content
   const paragraphs = [];
   
@@ -68,9 +68,9 @@ export async function downloadTranscriptionAsDOCX(
     new Paragraph({
       children: [
         new TextRun({
-          text: "Transcription",
+          text: 'Transcription',
           bold: true,
-          size: 32
+          size: 28,
         })
       ]
     })
@@ -80,15 +80,16 @@ export async function downloadTranscriptionAsDOCX(
   paragraphs.push(new Paragraph({}));
   
   // Add transcription content
-  if (speakers && speakers.length > 0) {
+  if (utterances && utterances.length > 0) {
     // Add content with speaker diarization
-    speakers.forEach(item => {
+    utterances.forEach(item => {
       const timestamp = formatTimestamp(item.start, item.end);
+      const speaker = item.speaker ? `Speaker ${item.speaker}` : 'Speaker';
       paragraphs.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: `${item.speaker} [${timestamp}]: `,
+              text: `${speaker} [${timestamp}]: `,
               bold: true,
             }),
             new TextRun({
@@ -104,7 +105,7 @@ export async function downloadTranscriptionAsDOCX(
       new Paragraph({
         children: [
           new TextRun({
-            text: transcriptionText,
+            text: text,
           })
         ]
       })
@@ -119,10 +120,9 @@ export async function downloadTranscriptionAsDOCX(
     }]
   });
 
-  // Generate and download the document
-  Packer.toBlob(doc).then(blob => {
-    saveAs(blob, `transcription-${new Date().getTime()}.docx`);
-  });
+  // Generate DOCX file
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, `transcription-${new Date().getTime()}.docx`);
 }
 
 /**
@@ -136,7 +136,8 @@ function formatTimestamp(start: number, end: number): string {
  * Format seconds to HH:MM:SS
  */
 function formatTime(seconds: number): string {
-  const date = new Date(0);
-  date.setSeconds(seconds);
-  return date.toISOString().substring(11, 19);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return [h, m, s].map(v => v < 10 ? '0' + v : v).join(':');
 }

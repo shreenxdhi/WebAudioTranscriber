@@ -22,11 +22,6 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
     return `(${bytes.toFixed(1)} ${units[i]})`;
   };
 
-  // Check if file is a valid audio file
-  const isAudioFile = (file: File): boolean => {
-    return file.type.startsWith("audio/");
-  };
-
   // Trigger file input click
   const triggerFileInput = () => {
     if (fileInputRef.current) {

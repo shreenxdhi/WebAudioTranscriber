@@ -4,9 +4,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { type TranscriptionResponse } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
-type InputMethod = "upload" | "url" | "record";
-type TranscriptionStatus = "idle" | "loading" | "success" | "error";
-type SpeechModel = "base" | "best";
+export type InputMethod = "upload" | "url" | "record";
+export type TranscriptionStatus = "idle" | "loading" | "success" | "error";
+export type SpeechModel = "base" | "best";
 
 export const useTranscription = () => {
   const { toast } = useToast();
@@ -107,15 +107,17 @@ export const useTranscription = () => {
   });
   
   // Start transcription based on input method
-  const startTranscription = async () => {
+  const startTranscription = () => {
     if (!isInputValid) return;
     
     setTranscriptionStatus("loading");
     
-    if ((inputMethod === "upload" || inputMethod === "record") && selectedFile) {
+    if (inputMethod === 'url') {
+      if (audioUrl) {
+        transcribeUrlMutation.mutate(audioUrl);
+      }
+    } else if (selectedFile) { // upload or record
       transcribeFileMutation.mutate(selectedFile);
-    } else if (inputMethod === "url" && audioUrl) {
-      transcribeUrlMutation.mutate(audioUrl);
     }
   };
   
