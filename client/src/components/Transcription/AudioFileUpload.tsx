@@ -56,21 +56,21 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    e.currentTarget.classList.add("border-primary", "bg-blue-50");
+    e.currentTarget.classList.add("border-primary", "bg-primary/5");
   };
 
   // Handle drag leave
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    e.currentTarget.classList.remove("border-primary", "bg-blue-50");
+    e.currentTarget.classList.remove("border-primary", "bg-primary/5");
   };
 
   // Handle drop
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    e.currentTarget.classList.remove("border-primary", "bg-blue-50");
+    e.currentTarget.classList.remove("border-primary", "bg-primary/5");
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
@@ -96,9 +96,9 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
   };
 
   return (
-    <div>
+    <div className="px-1">
       <div
-        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition duration-300 cursor-pointer bg-gray-50"
+        className="border-2 border-dashed border-border rounded-lg p-4 sm:p-8 text-center hover:border-primary transition duration-300 cursor-pointer bg-card/50 min-h-[120px] flex flex-col items-center justify-center"
         onClick={triggerFileInput}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -111,32 +111,33 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
           accept="audio/*"
           onChange={handleFileChange}
         />
-        <span className="material-icons text-4xl text-gray-400 mb-2">cloud_upload</span>
-        <p className="text-gray-600 mb-1">
-          Drag & drop your audio file here or click to browse
+        <span className="material-icons text-3xl sm:text-4xl text-muted-foreground mb-2">cloud_upload</span>
+        <p className="text-sm sm:text-base text-foreground mb-1">
+          Drag & drop your audio file here or tap to browse
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Supports MP3, WAV, M4A, and other audio formats
         </p>
       </div>
 
       {selectedFile && (
-        <div className="flex mt-4 items-center p-3 bg-gray-50 rounded-lg">
-          <span className="material-icons text-gray-500 mr-2">audiotrack</span>
+        <div className="flex mt-4 items-center p-3 sm:p-4 bg-card/50 rounded-lg border border-border">
+          <span className="material-icons text-muted-foreground mr-2">audiotrack</span>
           <div className="flex-1 truncate">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-foreground">
               {selectedFile.name}
             </span>
-            <span className="text-xs text-gray-500 ml-1">
+            <span className="text-xs text-muted-foreground ml-1">
               {formatFileSize(selectedFile.size)}
             </span>
           </div>
           <button
-            className="text-gray-500 hover:text-red-500 transition"
+            className="text-muted-foreground hover:text-red-500 transition p-2 -mr-1"
             onClick={(e) => {
               e.stopPropagation();
               removeFile();
             }}
+            aria-label="Remove file"
           >
             <span className="material-icons">close</span>
           </button>

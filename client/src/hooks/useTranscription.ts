@@ -112,7 +112,7 @@ export const useTranscription = () => {
     
     setTranscriptionStatus("loading");
     
-    if (inputMethod === "upload" && selectedFile) {
+    if ((inputMethod === "upload" || inputMethod === "record") && selectedFile) {
       transcribeFileMutation.mutate(selectedFile);
     } else if (inputMethod === "url" && audioUrl) {
       transcribeUrlMutation.mutate(audioUrl);

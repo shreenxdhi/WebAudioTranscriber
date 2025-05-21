@@ -13,8 +13,8 @@ const AudioUrlInput = ({ audioUrl, setAudioUrl }: AudioUrlInputProps) => {
   };
 
   return (
-    <div className="mb-4">
-      <Label htmlFor="audio-url" className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="mb-4 px-1">
+      <Label htmlFor="audio-url" className="block text-sm font-medium text-foreground mb-2">
         Audio URL
       </Label>
       <Input
@@ -23,9 +23,9 @@ const AudioUrlInput = ({ audioUrl, setAudioUrl }: AudioUrlInputProps) => {
         placeholder="https://example.com/audio-file.mp3"
         value={audioUrl}
         onChange={handleUrlInput}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        className="w-full h-12 px-3 py-2 text-base border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
       />
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-muted-foreground">
         Enter the direct URL to an audio file (MP3, WAV, etc.)
       </p>
     </div>

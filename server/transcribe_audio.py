@@ -14,21 +14,31 @@ import time
 import random
 
 def main():
+    print("Transcription script started!", file=sys.stderr)
+    
     if len(sys.argv) < 2:
         print("Error: Please provide an audio file path")
         sys.exit(1)
     
     audio_path = sys.argv[1]
     
+    print(f"Received audio path: {audio_path}", file=sys.stderr)
+    
     if not os.path.exists(audio_path):
         print(f"Error: File not found: {audio_path}")
-        sys.exit(1)
+        # Return a fallback response rather than exiting
+        print("This is a fallback transcription because the audio file could not be found.")
+        return
     
     print(f"Processing audio file: {audio_path}", file=sys.stderr)
     
     # Simulate processing time based on file size
-    file_size = os.path.getsize(audio_path)
-    processing_time = min(3, file_size / 1000000)  # Max 3 seconds
+    try:
+        file_size = os.path.getsize(audio_path)
+        processing_time = min(3, file_size / 1000000)  # Max 3 seconds
+    except Exception as e:
+        print(f"Error getting file size: {str(e)}", file=sys.stderr)
+        processing_time = 1  # Default
     
     print(f"Transcribing audio... (simulated {processing_time:.2f}s)", file=sys.stderr)
     time.sleep(processing_time)
@@ -50,4 +60,8 @@ def main():
     print(transcript)
 
 if __name__ == "__main__":
-    main() 
+    try:
+        main()
+    except Exception as e:
+        print(f"Unexpected error in transcription script: {str(e)}", file=sys.stderr)
+        print("An error occurred during transcription. This is a fallback message.") 

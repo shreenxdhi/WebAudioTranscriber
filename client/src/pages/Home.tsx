@@ -23,20 +23,20 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans">
-      <div className="container mx-auto px-4 py-8 md:py-16">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 md:py-12">
         {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Voice Transcriber</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+        <header className="text-center mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Voice Transcriber</h1>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
             Convert your audio to text with powerful speech recognition technology
           </p>
-          <p className="text-sm text-muted-foreground/80 mt-2">
+          <p className="text-xs sm:text-sm text-muted-foreground/80 mt-2">
             Developed by Shreenidhi Vasishta
           </p>
         </header>
 
         {/* Main Application */}
-        <div className="max-w-3xl mx-auto bg-card rounded-xl shadow-md overflow-hidden">
+        <div className="max-w-3xl mx-auto bg-card rounded-lg sm:rounded-xl shadow-sm sm:shadow-md overflow-hidden border border-border">
           <TranscriptionForm
             inputMethod={inputMethod}
             setInputMethod={setInputMethod}
@@ -60,7 +60,7 @@ const Home = () => {
         </div>
 
         {/* Footer */}
-        <footer className="mt-8 text-center text-sm text-muted-foreground/80">
+        <footer className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-muted-foreground/80">
           <p>
             © {new Date().getFullYear()} Shreenidhi Vasishta • 
             Voice Transcription App

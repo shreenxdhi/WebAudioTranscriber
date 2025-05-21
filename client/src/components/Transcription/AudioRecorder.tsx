@@ -135,41 +135,41 @@ const AudioRecorder = ({ setSelectedFile }: AudioRecorderProps) => {
   };
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg mb-4">
-      <h3 className="text-lg font-medium text-gray-800 mb-3">Record Audio</h3>
+    <div className="p-3 sm:p-4 bg-card rounded-lg mb-4 border border-border">
+      <h3 className="text-base sm:text-lg font-medium text-card-foreground mb-3">Record Audio</h3>
       
-      {/* Recording timer */}
+      {/* Recording timer - Mobile optimized */}
       {isRecording && (
         <div className="mb-4 text-center">
-          <div className="text-xl font-bold text-primary">
+          <div className="text-2xl font-bold text-primary">
             {formatTime(recordingTime)}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             Recording in progress...
           </div>
         </div>
       )}
       
-      {/* Audio preview */}
+      {/* Audio preview - Mobile optimized */}
       {audioBlob && !isRecording && (
         <div className="mb-4">
           <audio 
             src={URL.createObjectURL(audioBlob)} 
             controls 
-            className="w-full mb-2"
+            className="w-full mb-2 h-12"
           />
-          <div className="text-sm text-gray-500 text-center">
+          <div className="text-sm text-muted-foreground text-center">
             Recording duration: {formatTime(recordingTime)}
           </div>
         </div>
       )}
       
-      {/* Recording controls */}
-      <div className="flex justify-center space-x-3">
+      {/* Recording controls - Mobile optimized */}
+      <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
         {!isRecording && !audioBlob && (
           <Button
             onClick={startRecording}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-red-500 hover:bg-red-600 h-12 w-full sm:w-auto"
           >
             <span className="material-icons mr-2">mic</span>
             Start Recording
@@ -180,7 +180,7 @@ const AudioRecorder = ({ setSelectedFile }: AudioRecorderProps) => {
           <Button
             onClick={stopRecording}
             variant="outline"
-            className="border-red-500 text-red-500 hover:bg-red-50"
+            className="border-red-500 text-red-500 hover:bg-red-50 h-12 w-full sm:w-auto mb-2 sm:mb-0"
           >
             <span className="material-icons mr-2">stop</span>
             Stop Recording
@@ -191,7 +191,7 @@ const AudioRecorder = ({ setSelectedFile }: AudioRecorderProps) => {
           <Button
             onClick={discardRecording}
             variant="outline"
-            className="border-gray-300 text-gray-700"
+            className="border-border text-muted-foreground h-12 w-full sm:w-auto"
           >
             <span className="material-icons mr-2">delete</span>
             Discard
@@ -202,7 +202,7 @@ const AudioRecorder = ({ setSelectedFile }: AudioRecorderProps) => {
           <Button
             onClick={discardRecording}
             variant="outline"
-            className="border-gray-300 text-gray-700"
+            className="border-border text-muted-foreground h-12 w-full sm:w-auto"
           >
             <span className="material-icons mr-2">delete</span>
             Cancel
