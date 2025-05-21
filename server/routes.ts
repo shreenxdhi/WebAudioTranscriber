@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import { z } from "zod";
 import { audioUrlSchema, transcriptionResponseSchema } from "@shared/schema";
-import assemblyai from "assemblyai";
+import { AssemblyAI } from "assemblyai";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -39,8 +39,11 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure AssemblyAI
   const apiKey = process.env.ASSEMBLYAI_API_KEY;
-  const client = new assemblyai.AssemblyAI({
-    apiKey: apiKey
+  if (!apiKey) {
+    console.error("AssemblyAI API key not found. Please set the ASSEMBLYAI_API_KEY environment variable.");
+  }
+  const client = new AssemblyAI({
+    apiKey: apiKey || ""
   });
 
   // Transcribe from URL
@@ -51,10 +54,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const transcript = await client.transcripts.transcribe({
         audio: url,
-        model: options?.speechModel === "base" ? "base" : "best"
+        speech_model: options?.speechModel === "base" ? "base" : "best"
       });
       
-      if (!transcript || !transcript.text) {
+      if (transcript.status === "error") {
+        return res.status(400).json({ 
+          message: `Transcription failed: ${transcript.error || "Unknown error"}` 
+        });
+      }
+      
+      if (!transcript.text) {
         return res.status(400).json({ 
           message: "Transcription failed: No transcript was generated" 
         });
@@ -64,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const words = transcript.text.split(/\s+/).filter(Boolean);
       const response = {
         text: transcript.text,
-        audioDuration: transcript.audio_duration,
+        audioDuration: transcript.audio_duration || 0,
         wordCount: words.length,
         status: "completed"
       };
@@ -108,11 +117,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Read file as Buffer
       const fileBuffer = fs.readFileSync(filePath);
       
-      // Create transcriber and config
-      const transcriber = new assemblyai.Transcriber();
-      const transcript = await transcriber.transcribe({
+      // Transcribe with AssemblyAI
+      const transcript = await client.transcripts.transcribe({
         audio: fileBuffer,
-        speech_model: speechModel
+        model: speechModel
       });
       
       // Clean up temp file after transcription
