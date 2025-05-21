@@ -36,6 +36,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     apiKey: apiKey || ""
   });
 
+  // Health check endpoint for deployment monitoring
+  app.get("/api/health", (req: Request, res: Response) => {
+    res.status(200).json({ status: "healthy" });
+  });
+
   // Simple test endpoint
   app.get("/api/test", (req: Request, res: Response) => {
     res.json({ message: "API is working!" });
