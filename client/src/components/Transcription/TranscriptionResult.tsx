@@ -64,11 +64,11 @@ const TranscriptionResult = ({
       {/* Initial State */}
       {status === "idle" && (
         <div className="py-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-            <span className="material-icons text-2xl text-gray-400">record_voice_over</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+            <span className="material-icons text-2xl text-muted-foreground">record_voice_over</span>
           </div>
-          <h3 className="text-lg font-medium text-gray-700">No transcription yet</h3>
-          <p className="text-gray-500 text-sm mt-1">
+          <h3 className="text-lg font-medium text-card-foreground">No transcription yet</h3>
+          <p className="text-muted-foreground text-sm mt-1">
             Upload or provide a URL to an audio file to get started
           </p>
         </div>
@@ -77,12 +77,12 @@ const TranscriptionResult = ({
       {/* Loading State */}
       {status === "loading" && (
         <div className="py-10 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary mb-4"></div>
-          <h3 className="text-lg font-medium text-gray-700">Transcribing your audio</h3>
-          <p className="text-gray-500 text-sm mt-1">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-muted border-t-primary mb-4"></div>
+          <h3 className="text-lg font-medium text-card-foreground">Transcribing your audio</h3>
+          <p className="text-muted-foreground text-sm mt-1">
             This may take a few moments depending on the file size
           </p>
-          <div className="w-full max-w-md mx-auto mt-4 bg-gray-200 rounded-full h-2.5">
+          <div className="w-full max-w-md mx-auto mt-4 bg-muted rounded-full h-2.5">
             <div className="bg-primary h-2.5 rounded-full w-3/4"></div>
           </div>
         </div>
@@ -91,11 +91,11 @@ const TranscriptionResult = ({
       {/* Error State */}
       {status === "error" && (
         <div className="py-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-            <span className="material-icons text-2xl text-red-500">error_outline</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+            <span className="material-icons text-2xl text-red-500 dark:text-red-400">error_outline</span>
           </div>
-          <h3 className="text-lg font-medium text-gray-700">Transcription failed</h3>
-          <p className="text-red-500 text-sm mt-1">{errorMessage || "Unable to process the audio file. Please try again."}</p>
+          <h3 className="text-lg font-medium text-card-foreground">Transcription failed</h3>
+          <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errorMessage || "Unable to process the audio file. Please try again."}</p>
           <Button 
             variant="outline"
             className="mt-4 px-4 py-2"
@@ -110,7 +110,7 @@ const TranscriptionResult = ({
       {status === "success" && data && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-800">Transcription Results</h3>
+            <h3 className="text-lg font-medium text-card-foreground">Transcription Results</h3>
             <div className="flex items-center gap-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -130,7 +130,7 @@ const TranscriptionResult = ({
               </DropdownMenu>
               
               <button
-                className="text-primary hover:text-blue-700 font-medium text-sm inline-flex items-center"
+                className="text-primary hover:text-primary/80 font-medium text-sm inline-flex items-center"
                 onClick={copyToClipboard}
               >
                 <span className="material-icons mr-1 text-base">
@@ -141,17 +141,17 @@ const TranscriptionResult = ({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
-            <p className="text-gray-700 whitespace-pre-wrap">{data.text}</p>
+          <div className="bg-muted rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
+            <p className="text-card-foreground whitespace-pre-wrap">{data.text}</p>
           </div>
 
           <div className="flex justify-between items-center text-sm">
-            <div className="text-gray-500">
+            <div className="text-muted-foreground">
               <span>{formatDuration(data.audioDuration)}</span> minutes •{" "}
               <span>{data.wordCount || data.text.split(/\s+/).filter(Boolean).length}</span> words
             </div>
             <button
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground hover:text-card-foreground"
               onClick={resetTranscription}
             >
               New Transcription

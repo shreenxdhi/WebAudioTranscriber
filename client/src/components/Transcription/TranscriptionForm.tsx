@@ -33,17 +33,17 @@ const TranscriptionForm = ({
   setSpeechModel,
 }: TranscriptionFormProps) => {
   return (
-    <div className="p-6 border-b border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Transcribe Audio</h2>
+    <div className="p-6 border-b border-border">
+      <h2 className="text-xl font-semibold text-card-foreground mb-4">Transcribe Audio</h2>
 
       {/* Input Method Toggle */}
-      <div className="flex border border-gray-200 rounded-lg overflow-hidden mb-6">
+      <div className="flex border border-border rounded-lg overflow-hidden mb-6">
         <button
           onClick={() => setInputMethod("upload")}
           className={`flex-1 py-2 text-center font-medium transition flex justify-center items-center ${
             inputMethod === "upload"
-              ? "bg-primary text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card text-card-foreground hover:bg-muted"
           }`}
         >
           <span className="material-icons text-sm align-middle mr-1">upload_file</span>
@@ -53,8 +53,8 @@ const TranscriptionForm = ({
           onClick={() => setInputMethod("url")}
           className={`flex-1 py-2 text-center font-medium transition flex justify-center items-center ${
             inputMethod === "url"
-              ? "bg-primary text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card text-card-foreground hover:bg-muted"
           }`}
         >
           <span className="material-icons text-sm align-middle mr-1">link</span>
@@ -64,8 +64,8 @@ const TranscriptionForm = ({
           onClick={() => setInputMethod("record")}
           className={`flex-1 py-2 text-center font-medium transition flex justify-center items-center ${
             inputMethod === "record"
-              ? "bg-primary text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card text-card-foreground hover:bg-muted"
           }`}
         >
           <span className="material-icons text-sm align-middle mr-1">mic</span>
