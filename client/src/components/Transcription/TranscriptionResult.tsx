@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TranscriptionResponse } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { downloadTranscriptionAsPDF, downloadTranscriptionAsDOCX } from "@/lib/fileGenerators";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TranscriptionResultProps {
   status: "idle" | "loading" | "success" | "error";
@@ -104,15 +111,34 @@ const TranscriptionResult = ({
         <div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium text-gray-800">Transcription Results</h3>
-            <button
-              className="text-primary hover:text-blue-700 font-medium text-sm inline-flex items-center"
-              onClick={copyToClipboard}
-            >
-              <span className="material-icons mr-1 text-base">
-                {copyButtonText === "Copied!" ? "check" : "content_copy"}
-              </span>
-              {copyButtonText}
-            </button>
+            <div className="flex items-center gap-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <span className="material-icons text-base">file_download</span>
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => downloadTranscriptionAsPDF(data.text)}>
+                    PDF Document
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => downloadTranscriptionAsDOCX(data.text)}>
+                    Word Document (DOCX)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <button
+                className="text-primary hover:text-blue-700 font-medium text-sm inline-flex items-center"
+                onClick={copyToClipboard}
+              >
+                <span className="material-icons mr-1 text-base">
+                  {copyButtonText === "Copied!" ? "check" : "content_copy"}
+                </span>
+                {copyButtonText}
+              </button>
+            </div>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
