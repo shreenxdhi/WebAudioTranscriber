@@ -28,7 +28,10 @@ const Home = () => {
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Voice Transcriber</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Convert your audio to text with AssemblyAI's powerful speech recognition technology
+            Convert your audio to text with powerful speech recognition technology
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Developed by Shreenidhi Vasishta
           </p>
         </header>
 
@@ -59,16 +62,9 @@ const Home = () => {
         {/* Footer */}
         <footer className="mt-8 text-center text-sm text-gray-500">
           <p>
-            Powered by{" "}
-            <a
-              href="https://www.assemblyai.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              AssemblyAI
-            </a>{" "}
-            •{" "}
+            © 2023 Shreenidhi Vasishta • 
+            Voice Transcription App
+            {" "}•{" "}
             <a href="#" className="hover:underline">
               Terms
             </a>{" "}

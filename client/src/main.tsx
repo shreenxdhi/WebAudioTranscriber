@@ -16,7 +16,7 @@ document.head.appendChild(interFontLink);
 
 // Add title element
 const titleElement = document.createElement("title");
-titleElement.textContent = "Voice Transcriber - AssemblyAI";
+titleElement.textContent = "Voice Transcriber - Shreenidhi Vasishta";
 document.head.appendChild(titleElement);
 
 createRoot(document.getElementById("root")!).render(<App />);
