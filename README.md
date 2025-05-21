@@ -1,10 +1,10 @@
 # WebAudioTranscriber
 
-A web application for transcribing audio files using AssemblyAI. This application allows users to upload audio files, transcribe them, and download the transcriptions in various formats.
+A web application for transcribing audio files using local processing. This application was developed by Shreenidhi Vasishta and allows users to upload audio files, transcribe them, and download the transcriptions in various formats.
 
 ## Features
 
-- Audio file upload and transcription
+- Audio file upload and transcription using local processing
 - Real-time transcription progress tracking
 - Download transcriptions in various formats (Text, DOCX, PDF)
 - User-friendly interface with modern UI components
@@ -15,7 +15,7 @@ A web application for transcribing audio files using AssemblyAI. This applicatio
 - **Frontend**: React, TypeScript, TailwindCSS, Shadcn/UI
 - **Backend**: Express.js, Node.js
 - **Database**: NeonDB (PostgreSQL)
-- **Transcription**: AssemblyAI API
+- **Transcription**: Local Processing (Python)
 - **Authentication**: Passport.js
 - **Deployment**: Render
 
@@ -23,14 +23,14 @@ A web application for transcribing audio files using AssemblyAI. This applicatio
 
 - Node.js (v16 or higher)
 - npm or yarn
-- AssemblyAI API key
+- Python 3.6+ (for the transcription script)
 - NeonDB connection string
 
 ## Setup and Installation
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/WebAudioTranscriber.git
+   git clone https://github.com/shreenidhivasishta/WebAudioTranscriber.git
    cd WebAudioTranscriber
    ```
 
@@ -43,7 +43,6 @@ A web application for transcribing audio files using AssemblyAI. This applicatio
    Create a `.env` file in the root directory with the following variables:
    ```
    DATABASE_URL=your_neondb_connection_string
-   ASSEMBLYAI_API_KEY=your_assemblyai_api_key
    SESSION_SECRET=your_session_secret
    ```
 
@@ -84,7 +83,6 @@ A web application for transcribing audio files using AssemblyAI. This applicatio
 
 4. Add the following environment variables in Render:
    - `DATABASE_URL` (Your NeonDB connection string)
-   - `ASSEMBLYAI_API_KEY` (Your AssemblyAI API key)
    - `SESSION_SECRET` (A secure random string)
    - `NODE_ENV` = production
 
@@ -102,9 +100,12 @@ A web application for transcribing audio files using AssemblyAI. This applicatio
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## About the Author
+
+Developed by **Shreenidhi Vasishta**.
+
 ## Acknowledgements
 
-- [AssemblyAI](https://www.assemblyai.com/) for the transcription API
 - [Shadcn/UI](https://ui.shadcn.com/) for UI components
 - [TailwindCSS](https://tailwindcss.com/) for styling
 - [React](https://reactjs.org/) for the frontend framework

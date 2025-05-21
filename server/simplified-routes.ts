@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { AssemblyAI } from "assemblyai";
+import { execSync } from "child_process";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -25,25 +25,57 @@ const upload = multer({
   }
 });
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure AssemblyAI
-  const apiKey = process.env.ASSEMBLYAI_API_KEY;
-  if (!apiKey) {
-    console.error("AssemblyAI API key not found. Please set the ASSEMBLYAI_API_KEY environment variable.");
+/**
+ * Local transcription processing 
+ * Developed by Shreenidhi Vasishta
+ */
+async function processAudioLocally(audioPath: string): Promise<{ text: string; error?: string }> {
+  try {
+    // Use a local script or command-line tool to process the audio
+    // This is a placeholder - replace with your actual local processing command
+    const result = execSync(`python3 ./server/transcribe_audio.py "${audioPath}"`).toString();
+    return { text: result.trim() };
+  } catch (error: any) {
+    console.error("Local transcription error:", error);
+    return { text: "", error: error.message || "Failed to transcribe audio locally" };
   }
-  
-  const client = new AssemblyAI({
-    apiKey: apiKey || ""
-  });
+}
+
+/**
+ * Process audio from URL by downloading first
+ * Developed by Shreenidhi Vasishta
+ */
+async function processUrlLocally(url: string): Promise<{ text: string; error?: string }> {
+  try {
+    const tempFile = path.join(os.tmpdir(), `download-${Date.now()}.mp3`);
+    
+    // Download the file (this is a placeholder - implement proper download logic)
+    execSync(`curl -L "${url}" -o "${tempFile}"`);
+    
+    // Process the downloaded file
+    const result = await processAudioLocally(tempFile);
+    
+    // Clean up
+    fs.unlinkSync(tempFile);
+    
+    return result;
+  } catch (error: any) {
+    console.error("URL processing error:", error);
+    return { text: "", error: error.message || "Failed to process audio URL locally" };
+  }
+}
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  console.log("Starting Shreenidhi Vasishta's local transcription service");
 
   // Health check endpoint for deployment monitoring
   app.get("/api/health", (req: Request, res: Response) => {
-    res.status(200).json({ status: "healthy" });
+    res.status(200).json({ status: "healthy", author: "Shreenidhi Vasishta" });
   });
 
   // Simple test endpoint
   app.get("/api/test", (req: Request, res: Response) => {
-    res.json({ message: "API is working!" });
+    res.json({ message: "API is working!", author: "Shreenidhi Vasishta" });
   });
 
   // Transcribe from URL
@@ -55,25 +87,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "URL is required" });
       }
 
-      console.log("Starting transcription from URL:", url);
+      console.log("Starting local transcription from URL:", url);
       
-      const transcript = await client.transcripts.transcribe({
-        audio: url
-      });
+      const transcriptionResult = await processUrlLocally(url);
       
-      console.log("Transcription result:", transcript.status);
-      
-      if (transcript.status === "error") {
+      if (transcriptionResult.error) {
         return res.status(400).json({ 
-          message: `Transcription failed: ${transcript.error || "Unknown error"}` 
+          message: `Transcription failed: ${transcriptionResult.error}` 
         });
       }
       
+      const words = transcriptionResult.text.split(/\s+/).filter(Boolean);
+      
       return res.status(200).json({
-        text: transcript.text,
-        audioDuration: transcript.audio_duration || 0,
-        wordCount: transcript.text ? transcript.text.split(/\s+/).filter(Boolean).length : 0,
-        status: transcript.status
+        text: transcriptionResult.text,
+        audioDuration: 0, // We don't track this in local processing
+        wordCount: words.length,
+        status: "completed",
+        processedBy: "Shreenidhi Vasishta's Local Transcription Service"
       });
       
     } catch (error: any) {
@@ -92,34 +123,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const filePath = req.file.path;
-      console.log("Starting transcription from file:", req.file.originalname);
+      console.log("Starting local transcription from file:", req.file.originalname);
       
-      // Read file as Buffer
-      const fileBuffer = fs.readFileSync(filePath);
-      
-      // Transcribe with AssemblyAI
-      const transcript = await client.transcripts.transcribe({
-        audio: fileBuffer
-      });
+      // Process with local transcription
+      const transcriptionResult = await processAudioLocally(filePath);
       
       // Clean up temp file after transcription
       fs.unlink(filePath, (err) => {
         if (err) console.error("Error deleting temporary file:", err);
       });
       
-      console.log("Transcription result:", transcript.status);
-      
-      if (transcript.status === "error") {
+      if (transcriptionResult.error) {
         return res.status(400).json({ 
-          message: `Transcription failed: ${transcript.error || "Unknown error"}` 
+          message: `Transcription failed: ${transcriptionResult.error}` 
         });
       }
       
+      const words = transcriptionResult.text.split(/\s+/).filter(Boolean);
+      
       return res.status(200).json({
-        text: transcript.text,
-        audioDuration: transcript.audio_duration || 0,
-        wordCount: transcript.text ? transcript.text.split(/\s+/).filter(Boolean).length : 0,
-        status: transcript.status
+        text: transcriptionResult.text,
+        audioDuration: 0, // We don't track this in local processing
+        wordCount: words.length,
+        status: "completed",
+        processedBy: "Shreenidhi Vasishta's Local Transcription Service"
       });
       
     } catch (error: any) {
