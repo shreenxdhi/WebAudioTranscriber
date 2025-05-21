@@ -4,10 +4,10 @@ import { storage } from "./storage";
 import multer from "multer";
 import { z } from "zod";
 import { audioUrlSchema, transcriptionResponseSchema } from "@shared/schema";
-import { AssemblyAI } from "assemblyai";
 import path from "path";
 import fs from "fs";
 import os from "os";
+import { transcribeFromUrl, transcribeFromFile, formatTranscriptionResult } from "./transcriptionService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -37,14 +37,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure AssemblyAI
-  const apiKey = process.env.ASSEMBLYAI_API_KEY;
-  if (!apiKey) {
-    console.error("AssemblyAI API key not found. Please set the ASSEMBLYAI_API_KEY environment variable.");
-  }
-  const client = new AssemblyAI({
-    apiKey: apiKey || ""
-  });
+  // Log startup info
+  console.log("Starting transcription service with custom implementation");
+  // No external API key needed for our custom implementation
 
   // Transcribe from URL
   app.post("/api/transcribe/url", async (req: Request, res: Response) => {
