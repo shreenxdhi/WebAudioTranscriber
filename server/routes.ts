@@ -47,27 +47,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = audioUrlSchema.parse(req.body);
       const { url, options } = validatedData;
       
-      const transcript = await client.transcripts.transcribe({
-        audio: url
-      });
+      // Use our custom transcription service
+      const transcriptionResult = await transcribeFromUrl(url);
       
-      if (transcript.status === "error") {
+      if (transcriptionResult.error) {
         return res.status(400).json({ 
-          message: `Transcription failed: ${transcript.error || "Unknown error"}` 
+          message: `Transcription failed: ${transcriptionResult.error}` 
         });
       }
       
-      if (!transcript.text) {
+      if (!transcriptionResult.text) {
         return res.status(400).json({ 
           message: "Transcription failed: No transcript was generated" 
         });
       }
       
-      // Prepare response
-      const words = transcript.text.split(/\s+/).filter(Boolean);
+      // Format the response
+      const formattedResult = formatTranscriptionResult(transcriptionResult);
+      
+      // Prepare standard response
+      const words = transcriptionResult.text.split(/\s+/).filter(Boolean);
       const response = {
-        text: transcript.text,
-        audioDuration: transcript.audio_duration || 0,
+        text: transcriptionResult.text,
+        audioDuration: 30, // Default duration since our custom service doesn't track this
         wordCount: words.length,
         status: "completed"
       };
@@ -77,9 +79,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save transcription to storage
       await storage.saveTranscription({
-        text: transcript.text,
+        text: transcriptionResult.text,
         audioUrl: url,
-        audioDuration: transcript.audio_duration || 0,
+        audioDuration: 30, // Default duration
         wordCount: words.length,
         status: "completed"
       });
@@ -106,38 +108,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const speechModel = req.body.speechModel === "base" ? "base" : "best";
-      const filePath = req.file.path;
       
-      // Read file as Buffer
-      const fileBuffer = fs.readFileSync(filePath);
-      
-      // Transcribe with AssemblyAI
-      const transcript = await client.transcripts.transcribe({
-        audio: fileBuffer
-      });
+      // Use our custom transcription service
+      const transcriptionResult = await transcribeFromFile(req.file);
       
       // Clean up temp file after transcription
-      fs.unlink(filePath, (err) => {
+      fs.unlink(req.file.path, (err) => {
         if (err) console.error("Error deleting temporary file:", err);
       });
       
-      if (transcript.status === "error") {
+      if (transcriptionResult.error) {
         return res.status(400).json({ 
-          message: `Transcription failed: ${transcript.error || "Unknown error"}` 
+          message: `Transcription failed: ${transcriptionResult.error}` 
         });
       }
       
-      if (!transcript.text) {
+      if (!transcriptionResult.text) {
         return res.status(400).json({ 
           message: "Transcription failed: No transcript was generated" 
         });
       }
       
-      // Prepare response
-      const words = transcript.text.split(/\s+/).filter(Boolean);
+      // Format the response
+      const formattedResult = formatTranscriptionResult(transcriptionResult);
+      
+      // Prepare standard response
+      const words = transcriptionResult.text.split(/\s+/).filter(Boolean);
       const response = {
-        text: transcript.text,
-        audioDuration: transcript.audio_duration || 0,
+        text: transcriptionResult.text,
+        audioDuration: 30, // Default duration since our custom service doesn't track this
         wordCount: words.length,
         status: "completed"
       };
@@ -147,9 +146,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save transcription to storage
       await storage.saveTranscription({
-        text: transcript.text,
+        text: transcriptionResult.text,
         audioUrl: null,
-        audioDuration: transcript.audio_duration || 0,
+        audioDuration: 30, // Default duration
         wordCount: words.length,
         status: "completed"
       });
