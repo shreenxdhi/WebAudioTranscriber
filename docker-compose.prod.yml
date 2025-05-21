@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Uncomment and set these environment variables as needed
+      # - WHISPER_MODEL=base
+      # - HF_TOKEN=your_huggingface_token
+      # - DEVICE=cuda
+    volumes:
+      # Mount a volume for persistent storage of transcriptions
+      - ./data:/app/data
+    # Uncomment the following if you want to use GPU acceleration
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Example Nginx reverse proxy (uncomment to use)
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./certs:/etc/nginx/certs:ro
+  #   depends_on:
+  #     - web
+  #   restart: unless-stopped
+
+# Volumes for persistent data
+volumes:
+  app_data:
+    driver: local
+
+# Networks for inter-container communication
+networks:
+  app_network:
+    driver: bridge

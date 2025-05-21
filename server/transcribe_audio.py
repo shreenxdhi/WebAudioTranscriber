@@ -12,23 +12,53 @@ import json
 import time
 import tempfile
 import traceback
-from typing import Dict, List, Any, Tuple
+import subprocess
+from typing import Dict, List, Any, Tuple, Optional
 
-try:
-    import whisper
-    import torch
-    import numpy as np
-    from pyannote.audio import Pipeline
-    from pydub import AudioSegment
-except ImportError as e:
-    print(f"Error importing required packages: {e}", file=sys.stderr)
-    print("This is a fallback transcription. Required Python packages are not installed.")
-    print("Please install: pip install -U openai-whisper pyannote.audio torch numpy pydub")
+# Try to import required packages with better error handling
+REQUIRED_PACKAGES = [
+    "whisper",
+    "torch",
+    "torchaudio",
+    "numpy",
+    "pydub",
+    "pyannote.audio"
+]
+
+missing_packages = []
+for package in REQUIRED_PACKAGES:
+    try:
+        __import__(package)
+    except ImportError:
+        missing_packages.append(package)
+
+if missing_packages:
+    print(json.dumps({
+        "text": "Server error: Required Python packages are not installed.",
+        "error": f"Missing packages: {', '.join(missing_packages)}",
+        "instructions": "Please install the required packages using: pip install -r requirements.txt"
+    }), file=sys.stderr)
     sys.exit(1)
+
+# Now safely import the packages
+import whisper
+import torch
+import numpy as np
+from pydub import AudioSegment
+
+# Try to import pyannote.audio with a fallback
+try:
+    from pyannote.audio import Pipeline
+    DIARIZATION_AVAILABLE = True
+except ImportError:
+    DIARIZATION_AVAILABLE = False
+    print("Warning: pyannote.audio not available, speaker diarization will be disabled", file=sys.stderr)
 
 # Model constants
 WHISPER_MODEL = "base"  # Options: tiny, base, small, medium, large
 DIARIZATION_MODEL = "pyannote/speaker-diarization-3.1"
+# Using environment variable for the token or empty string if not set
+HF_TOKEN = os.environ.get("HF_TOKEN", "")  # Get from environment variable
 
 def format_timestamp(seconds: float) -> str:
     """Convert seconds to formatted timestamp"""
@@ -73,9 +103,14 @@ def transcribe_with_whisper(audio_path: str) -> Dict[str, Any]:
 
 def perform_diarization(audio_path: str) -> Dict[str, List[Dict[str, Any]]]:
     """Perform speaker diarization using pyannote.audio"""
+    if not DIARIZATION_AVAILABLE or not HF_TOKEN:
+        print("Speaker diarization is not available. Missing pyannote.audio or HF_TOKEN.", file=sys.stderr)
+        return {"segments": []}
+    
     try:
         print("Loading speaker diarization model...", file=sys.stderr)
-        pipeline = Pipeline.from_pretrained(DIARIZATION_MODEL)
+        # Use the token for authenticating with Hugging Face Hub
+        pipeline = Pipeline.from_pretrained(DIARIZATION_MODEL, use_auth_token=HF_TOKEN)
         
         print("Performing speaker diarization...", file=sys.stderr)
         diarization = pipeline(audio_path)
@@ -117,7 +152,8 @@ def perform_diarization(audio_path: str) -> Dict[str, List[Dict[str, Any]]]:
     except Exception as e:
         print(f"Error in speaker diarization: {e}", file=sys.stderr)
         print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
-        raise
+        # Return empty segments as fallback
+        return {"segments": []}
 
 def combine_transcription_with_diarization(whisper_result: Dict[str, Any], diarization_result: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Any]:
     """Combine Whisper transcription with speaker diarization"""
@@ -126,7 +162,25 @@ def combine_transcription_with_diarization(whisper_result: Dict[str, Any], diari
         whisper_segments = whisper_result.get("segments", [])
         diarization_segments = diarization_result.get("segments", [])
         
-        # Prepare output structure
+        # If no diarization segments, create simple output with a single speaker
+        if not diarization_segments:
+            print("No speaker diarization data available, using fallback with single speaker", file=sys.stderr)
+            output_segments = []
+            for segment in whisper_segments:
+                output_segments.append({
+                    "speaker": "SPEAKER_0",
+                    "text": segment["text"].strip(),
+                    "start": segment["start"],
+                    "end": segment["end"]
+                })
+            
+            return {
+                "text": whisper_result.get("text", ""),
+                "segments": output_segments,
+                "speakers": ["SPEAKER_0"]
+            }
+        
+        # Prepare output structure for normal diarization
         output_segments = []
         
         # Assign speakers to transcription segments based on overlap
@@ -188,7 +242,17 @@ def combine_transcription_with_diarization(whisper_result: Dict[str, Any], diari
         }
     except Exception as e:
         print(f"Error combining results: {e}", file=sys.stderr)
-        raise
+        # Provide a simple fallback with the full transcript and one speaker
+        return {
+            "text": whisper_result.get("text", ""),
+            "segments": [{
+                "speaker": "SPEAKER_0",
+                "text": whisper_result.get("text", ""),
+                "start": 0,
+                "end": whisper_result.get("segments", [{}])[-1].get("end", 1) if whisper_result.get("segments") else 1
+            }],
+            "speakers": ["SPEAKER_0"]
+        }
 
 def main():
     print("Transcription script started!", file=sys.stderr)
@@ -212,69 +276,53 @@ def main():
             print(f"Error: No read permissions for file: {audio_path}", file=sys.stderr)
             print("This is a fallback transcription because the audio file could not be read due to permission issues.")
             return
-            
-        # Check if file is empty or too small
-        file_size = os.path.getsize(audio_path)
-        if file_size == 0:
-            print(f"Error: File is empty: {audio_path}", file=sys.stderr)
-            print("This is a fallback transcription because the audio file is empty.")
-            return
         
-        print(f"Processing audio file: {audio_path}", file=sys.stderr)
-        print(f"File size: {file_size} bytes", file=sys.stderr)
+        # Check file size
+        file_size_mb = os.path.getsize(audio_path) / (1024 * 1024)
+        if file_size_mb > 50:  # 50MB limit
+            error_msg = {
+                "text": "Error: Audio file is too large. Maximum size is 50MB.",
+                "error": "File too large"
+            }
+            print(json.dumps(error_msg), file=sys.stderr)
+            sys.exit(1)
         
-        start_time = time.time()
-        
-        # Step 1: Transcribe with Whisper
+        # Transcribe the audio
         whisper_result = transcribe_with_whisper(audio_path)
         
-        # Step 2: Perform speaker diarization
+        # Only perform diarization if we have a valid transcription
+        if not whisper_result or "text" not in whisper_result or not whisper_result["text"].strip():
+            error_msg = {
+                "text": "Error: Failed to transcribe audio. The audio might be too short, silent, or in an unsupported format.",
+                "error": "Transcription failed"
+            }
+            print(json.dumps(error_msg), file=sys.stderr)
+            sys.exit(1)
+        
+        # Perform speaker diarization if available
         diarization_result = perform_diarization(audio_path)
         
-        # Step 3: Combine results
+        # Combine the results
         combined_result = combine_transcription_with_diarization(whisper_result, diarization_result)
         
-        # Calculate processing time
-        processing_time = time.time() - start_time
-        print(f"Processing completed in {processing_time:.2f} seconds", file=sys.stderr)
+        # Add metadata
+        combined_result["metadata"] = {
+            "model": WHISPER_MODEL,
+            "language": "en",
+            "diarization_available": DIARIZATION_AVAILABLE and bool(HF_TOKEN)
+        }
         
-        # Output the combined result as JSON
-        print(json.dumps(combined_result))
+        # Output the result as JSON
+        print(json.dumps(combined_result, ensure_ascii=False))
         
     except Exception as e:
-        print(f"Error processing file {audio_path}: {str(e)}", file=sys.stderr)
-        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
-        # Provide a fallback transcript for error cases
-        fallback_result = {
-            "text": "An error occurred during transcription. This is a fallback transcription message.",
-            "segments": [
-                {
-                    "speaker": "SPEAKER_0",
-                    "text": "An error occurred during transcription. This is a fallback transcription message.",
-                    "start": 0,
-                    "end": 1
-                }
-            ],
-            "speakers": ["SPEAKER_0"]
+        error_msg = {
+            "text": f"An error occurred during transcription: {str(e)}",
+            "error": str(e),
+            "traceback": traceback.format_exc()
         }
-        print(json.dumps(fallback_result))
+        print(json.dumps(error_msg), file=sys.stderr)
+        sys.exit(1)
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"Unexpected error in transcription script: {str(e)}", file=sys.stderr)
-        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
-        fallback_result = {
-            "text": "An error occurred during transcription. This is a fallback message.",
-            "segments": [
-                {
-                    "speaker": "SPEAKER_0",
-                    "text": "An error occurred during transcription. This is a fallback message.",
-                    "start": 0,
-                    "end": 1
-                }
-            ],
-            "speakers": ["SPEAKER_0"]
-        }
-        print(json.dumps(fallback_result)) 
+    main() 
