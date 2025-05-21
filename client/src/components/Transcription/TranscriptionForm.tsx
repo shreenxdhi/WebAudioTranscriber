@@ -1,12 +1,13 @@
 import { Dispatch, SetStateAction } from "react";
 import AudioFileUpload from "./AudioFileUpload";
 import AudioUrlInput from "./AudioUrlInput";
+import AudioRecorder from "./AudioRecorder";
 import AdvancedOptions from "./AdvancedOptions";
 import { Button } from "@/components/ui/button";
 
 interface TranscriptionFormProps {
-  inputMethod: "upload" | "url";
-  setInputMethod: Dispatch<SetStateAction<"upload" | "url">>;
+  inputMethod: "upload" | "url" | "record";
+  setInputMethod: Dispatch<SetStateAction<"upload" | "url" | "record">>;
   selectedFile: File | null;
   setSelectedFile: Dispatch<SetStateAction<File | null>>;
   audioUrl: string;
@@ -59,6 +60,17 @@ const TranscriptionForm = ({
           <span className="material-icons text-sm align-middle mr-1">link</span>
           Audio URL
         </button>
+        <button
+          onClick={() => setInputMethod("record")}
+          className={`flex-1 py-2 text-center font-medium transition flex justify-center items-center ${
+            inputMethod === "record"
+              ? "bg-primary text-white"
+              : "bg-white text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          <span className="material-icons text-sm align-middle mr-1">mic</span>
+          Record Audio
+        </button>
       </div>
 
       {/* Input Methods */}
@@ -68,6 +80,10 @@ const TranscriptionForm = ({
 
       <div className={inputMethod === "url" ? "block" : "hidden"}>
         <AudioUrlInput audioUrl={audioUrl} setAudioUrl={setAudioUrl} />
+      </div>
+      
+      <div className={inputMethod === "record" ? "block" : "hidden"}>
+        <AudioRecorder setSelectedFile={setSelectedFile} />
       </div>
 
       {/* Advanced Options */}

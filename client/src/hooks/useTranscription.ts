@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { type TranscriptionResponse } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
-type InputMethod = "upload" | "url";
+type InputMethod = "upload" | "url" | "record";
 type TranscriptionStatus = "idle" | "loading" | "success" | "error";
 type SpeechModel = "base" | "best";
 
