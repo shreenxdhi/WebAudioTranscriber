@@ -43,7 +43,19 @@ export class MemStorage implements IStorage {
 
   async saveTranscription(insertTranscription: InsertTranscription): Promise<Transcription> {
     const id = this.currentTranscriptionId++;
-    const transcription: Transcription = { ...insertTranscription, id };
+    const now = new Date().toISOString();
+    
+    // Ensure all required fields are present with default values if not provided
+    const transcription: Transcription = { 
+      id,
+      text: insertTranscription.text,
+      audioUrl: insertTranscription.audioUrl || null,
+      audioDuration: insertTranscription.audioDuration || 0,
+      wordCount: insertTranscription.wordCount || 0,
+      status: insertTranscription.status || "completed",
+      createdAt: now
+    };
+    
     this.transcriptions.set(id, transcription);
     return transcription;
   }

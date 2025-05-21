@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
@@ -12,21 +12,21 @@ import os from "os";
 // Configure multer for file uploads
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (req: any, file: any, cb: any) => {
       const tempDir = path.join(os.tmpdir(), 'audio-uploads');
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
       cb(null, tempDir);
     },
-    filename: (req, file, cb) => {
+    filename: (req: any, file: any, cb: any) => {
       cb(null, `${Date.now()}-${file.originalname}`);
     }
   }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: any, file: any, cb: any) => {
     // Accept only audio files
     if (file.mimetype.startsWith('audio/')) {
       cb(null, true);
@@ -53,8 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { url, options } = validatedData;
       
       const transcript = await client.transcripts.transcribe({
-        audio: url,
-        speech_model: options?.speechModel === "base" ? "base" : "best"
+        audio: url
       });
       
       if (transcript.status === "error") {
@@ -105,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Transcribe from file upload
-  app.post("/api/transcribe/upload", upload.single('file'), async (req: Request, res: Response) => {
+  app.post("/api/transcribe/upload", upload.single('file'), async (req: any, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No audio file provided" });
@@ -119,8 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Transcribe with AssemblyAI
       const transcript = await client.transcripts.transcribe({
-        audio: fileBuffer,
-        model: speechModel
+        audio: fileBuffer
       });
       
       // Clean up temp file after transcription
@@ -130,7 +128,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (transcript.status === "error") {
         return res.status(400).json({ 
-          message: `Transcription failed: ${transcript.error}` 
+          message: `Transcription failed: ${transcript.error || "Unknown error"}` 
+        });
+      }
+      
+      if (!transcript.text) {
+        return res.status(400).json({ 
+          message: "Transcription failed: No transcript was generated" 
         });
       }
       
@@ -138,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const words = transcript.text.split(/\s+/).filter(Boolean);
       const response = {
         text: transcript.text,
-        audioDuration: transcript.audio_duration,
+        audioDuration: transcript.audio_duration || 0,
         wordCount: words.length,
         status: "completed"
       };
