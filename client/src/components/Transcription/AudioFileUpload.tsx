@@ -34,20 +34,45 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
     }
   };
 
+  // Improve file validation and add better error handling for the file upload component
+  const validateFile = (file: File): boolean => {
+    // Check file size (50MB max)
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 50MB",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check if file is an audio file
+    if (!file.type.startsWith("audio/") && 
+        !file.name.endsWith(".mp3") && 
+        !file.name.endsWith(".wav") && 
+        !file.name.endsWith(".m4a") && 
+        !file.name.endsWith(".ogg")) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an audio file (MP3, WAV, M4A, OGG)",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   // Handle file selection
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      
-      if (isAudioFile(file)) {
+      if (validateFile(file)) {
         setSelectedFile(file);
-      } else {
         toast({
-          title: "Invalid file type",
-          description: "Please upload a valid audio file (MP3, WAV, M4A, etc.)",
-          variant: "destructive",
+          title: "File accepted",
+          description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`,
         });
-        removeFile();
       }
     }
   };
@@ -66,22 +91,19 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
     e.currentTarget.classList.remove("border-primary", "bg-primary/5");
   };
 
-  // Handle drop
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  // Add enhanced file drop handling
+  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.classList.remove("border-primary", "bg-primary/5");
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      
-      if (isAudioFile(file)) {
+      if (validateFile(file)) {
         setSelectedFile(file);
-      } else {
         toast({
-          title: "Invalid file type",
-          description: "Please upload a valid audio file (MP3, WAV, M4A, etc.)",
-          variant: "destructive",
+          title: "File accepted",
+          description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`,
         });
       }
     }
@@ -102,7 +124,7 @@ const AudioFileUpload = ({ selectedFile, setSelectedFile }: AudioFileUploadProps
         onClick={triggerFileInput}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDrop={handleFileDrop}
       >
         <input
           type="file"

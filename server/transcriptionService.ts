@@ -1,25 +1,19 @@
 import fs from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { Request, Response } from 'express';
 import * as os from 'os';
 
 // Interface for transcription result
 export interface TranscriptionResult {
   text: string;
-  words?: Array<{
-    word: string;
-    start: number;
-    end: number;
-    confidence: number;
-  }>;
-  language?: string;
-  speakers?: Array<{
+  segments?: Array<{
     speaker: string;
     text: string;
     start: number;
     end: number;
   }>;
+  speakers?: string[];
   error?: string;
 }
 
@@ -30,42 +24,117 @@ function formatTimestamp(seconds: number): string {
   return date.toISOString().substring(11, 19);
 }
 
-// Main transcription function using Whisper fallback via CLI
+// Main transcription function using our custom Python script
 export async function transcribeAudio(audioPath: string): Promise<TranscriptionResult> {
-  return new Promise((resolve) => {
-    // Using a simulated transcription process since we couldn't install Whisper
+  return new Promise((resolve, reject) => {
     console.log(`Processing transcription for: ${audioPath}`);
     
-    // Simulated response time
-    setTimeout(() => {
-      // Realistic transcription example with speaker diarization
-      const result: TranscriptionResult = {
-        text: "Hello, my name is Shreenidhi Vasishta. I've created this transcription app to help convert speech to text efficiently. It works with various audio inputs including uploaded files and URLs.",
-        speakers: [
-          {
-            speaker: "SPEAKER_01",
-            text: "Hello, my name is Shreenidhi Vasishta.",
-            start: 0.5,
-            end: 3.2
-          },
-          {
-            speaker: "SPEAKER_01",
-            text: "I've created this transcription app to help convert speech to text efficiently.",
-            start: 3.5,
-            end: 7.8
-          },
-          {
-            speaker: "SPEAKER_01",
-            text: "It works with various audio inputs including uploaded files and URLs.",
-            start: 8.1,
-            end: 12.4
-          }
-        ],
-        language: "english"
-      };
+    try {
+      // Get path to the Python script
+      const scriptPath = path.resolve(process.cwd(), 'server/transcribe_audio.py');
       
-      resolve(result);
-    }, 3000);
+      // Check if Python script exists
+      if (!fs.existsSync(scriptPath)) {
+        console.error(`Transcription script not found at: ${scriptPath}`);
+        return resolve({
+          text: "Transcription script not found. This is a fallback response.",
+          error: "Script not found"
+        });
+      }
+      
+      // Make the script executable
+      try {
+        execSync(`chmod +x "${scriptPath}"`);
+      } catch (chmodError) {
+        console.warn(`Failed to chmod script: ${chmodError.message}, continuing anyway`);
+      }
+      
+      // Prepare to run the Python script
+      const pythonProcess = spawn('python3', [scriptPath, audioPath]);
+      
+      let outputData = '';
+      let errorData = '';
+      
+      // Collect standard output
+      pythonProcess.stdout.on('data', (data) => {
+        outputData += data.toString();
+      });
+      
+      // Collect error output
+      pythonProcess.stderr.on('data', (data) => {
+        console.log(`Python script log: ${data.toString()}`);
+        errorData += data.toString();
+      });
+      
+      // Handle process completion
+      pythonProcess.on('close', (code) => {
+        console.log(`Python script exited with code ${code}`);
+        
+        if (code !== 0) {
+          console.error(`Python script error: ${errorData}`);
+          // Provide a fallback response if the script failed
+          return resolve({
+            text: "An error occurred in the transcription process. This is a fallback response.",
+            error: `Python process exited with code ${code}`
+          });
+        }
+        
+        try {
+          // Parse JSON output from the Python script
+          const result = JSON.parse(outputData);
+          console.log("Transcription result received successfully");
+          resolve(result);
+        } catch (e) {
+          console.error(`Failed to parse Python script output: ${e.message}`);
+          console.error(`Raw output: ${outputData}`);
+          
+          // Handle case where output isn't valid JSON
+          if (outputData.trim()) {
+            // If there's some text output, use it as plain text
+            resolve({
+              text: outputData.trim()
+            });
+          } else {
+            // No usable output
+            resolve({
+              text: "Failed to parse transcription result. This is a fallback response.",
+              error: "Invalid output format"
+            });
+          }
+        }
+      });
+      
+      // Handle process errors
+      pythonProcess.on('error', (err) => {
+        console.error(`Failed to start Python process: ${err.message}`);
+        resolve({
+          text: "Failed to start transcription process. This is a fallback response.",
+          error: err.message
+        });
+      });
+      
+      // Set a timeout in case the process hangs
+      const timeout = setTimeout(() => {
+        pythonProcess.kill();
+        console.error("Transcription process timed out");
+        resolve({
+          text: "Transcription process timed out. This is a fallback response.",
+          error: "Process timeout"
+        });
+      }, 3 * 60 * 1000); // 3 minute timeout
+      
+      // Clear the timeout if the process completes
+      pythonProcess.on('close', () => {
+        clearTimeout(timeout);
+      });
+      
+    } catch (error) {
+      console.error('Error in transcription process:', error);
+      resolve({ 
+        text: "An unexpected error occurred during transcription. This is a fallback response.", 
+        error: error.message || "Unknown error" 
+      });
+    }
   });
 }
 
@@ -78,9 +147,38 @@ export async function transcribeFromUrl(url: string): Promise<TranscriptionResul
     const tempDir = os.tmpdir();
     const tempFilePath = path.join(tempDir, `temp-${Date.now()}.mp3`);
     
-    // For now, we're using our simulated transcription
-    // In a real implementation, we would download the file first
-    return transcribeAudio(tempFilePath);
+    // Download the file with curl
+    try {
+      execSync(`curl -L --max-time 30 "${url}" -o "${tempFilePath}"`, { timeout: 60000 });
+      console.log(`Downloaded audio to: ${tempFilePath}`);
+    } catch (downloadError) {
+      console.error(`Error downloading from URL: ${downloadError.message}`);
+      return {
+        text: "Failed to download audio from the provided URL. This is a fallback response.",
+        error: "Download failed"
+      };
+    }
+    
+    // Verify the file exists
+    if (!fs.existsSync(tempFilePath) || fs.statSync(tempFilePath).size === 0) {
+      console.error(`Download failed or resulted in an empty file: ${tempFilePath}`);
+      return {
+        text: "The downloaded file is empty or invalid. This is a fallback response.",
+        error: "Invalid downloaded file"
+      };
+    }
+    
+    // Process the downloaded file
+    const result = await transcribeAudio(tempFilePath);
+    
+    // Clean up the temporary file
+    try {
+      fs.unlinkSync(tempFilePath);
+    } catch (cleanupError) {
+      console.warn(`Failed to clean up temp file: ${cleanupError.message}`);
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error transcribing from URL:', error);
     return { 
@@ -115,35 +213,29 @@ export function formatTranscriptionResult(result: TranscriptionResult): any {
   }
   
   // Format the result in the expected structure
-  let formattedOutput = {
+  const formattedOutput = {
     id: `transcript-${Date.now()}`,
     text: result.text,
     status: "completed",
     audio_url: "",
-    language_code: result.language || "en",
+    language_code: "en",
     confidence: 0.95,
     words: [] as any[],
     utterances: [] as any[],
-    speaker_labels: true
+    speaker_labels: result.segments && result.segments.length > 0
   };
   
-  // Add speaker information if available
-  if (result.speakers && result.speakers.length > 0) {
-    formattedOutput.utterances = result.speakers.map(speaker => {
+  // Add speaker segments if available
+  if (result.segments && result.segments.length > 0) {
+    formattedOutput.utterances = result.segments.map(segment => {
       return {
-        speaker: speaker.speaker,
-        text: speaker.text,
-        start: speaker.start,
-        end: speaker.end,
-        confidence: 0.9,
-        words: []
+        speaker: segment.speaker,
+        text: segment.text,
+        start: segment.start,
+        end: segment.end,
+        confidence: 0.9
       };
     });
-  }
-  
-  // Add word-level details if available
-  if (result.words && result.words.length > 0) {
-    formattedOutput.words = result.words;
   }
   
   return formattedOutput;

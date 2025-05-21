@@ -48,11 +48,25 @@ export const audioUrlSchema = z.object({
 
 export type AudioUrlRequest = z.infer<typeof audioUrlSchema>;
 
+// Define a schema for utterances (segments with speaker info)
+export const utteranceSchema = z.object({
+  speaker: z.string(),
+  text: z.string(),
+  start: z.number(),
+  end: z.number(),
+  confidence: z.number().optional()
+});
+
 export const transcriptionResponseSchema = z.object({
   text: z.string(),
   audioDuration: z.number().optional(),
   wordCount: z.number().optional(),
-  status: z.string()
+  status: z.string(),
+  // Add fields for speaker diarization
+  utterances: z.array(utteranceSchema).optional(),
+  speaker_labels: z.boolean().optional(),
+  speakers: z.array(z.string()).optional()
 });
 
+export type Utterance = z.infer<typeof utteranceSchema>;
 export type TranscriptionResponse = z.infer<typeof transcriptionResponseSchema>;

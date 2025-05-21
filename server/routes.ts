@@ -65,13 +65,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Format the response
       const formattedResult = formatTranscriptionResult(transcriptionResult);
       
-      // Prepare standard response
-      const words = transcriptionResult.text.split(/\s+/).filter(Boolean);
+      // Calculate word count if not provided
+      const wordCount = transcriptionResult.text.split(/\s+/).filter(Boolean).length;
+      
+      // Prepare response with speaker information
       const response = {
         text: transcriptionResult.text,
         audioDuration: 30, // Default duration since our custom service doesn't track this
-        wordCount: words.length,
-        status: "completed"
+        wordCount: wordCount,
+        status: "completed",
+        // Include speaker information if available
+        utterances: formattedResult.utterances || [],
+        speaker_labels: formattedResult.speaker_labels || false,
+        speakers: formattedResult.speakers || []
       };
       
       // Validate response
@@ -82,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: transcriptionResult.text,
         audioUrl: url,
         audioDuration: 30, // Default duration
-        wordCount: words.length,
+        wordCount: wordCount,
         status: "completed"
       });
       
@@ -129,16 +135,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Format the response
+      // Format the response with speaker diarization
       const formattedResult = formatTranscriptionResult(transcriptionResult);
       
-      // Prepare standard response
-      const words = transcriptionResult.text.split(/\s+/).filter(Boolean);
+      // Calculate word count if not provided
+      const wordCount = transcriptionResult.text.split(/\s+/).filter(Boolean).length;
+      
+      // Prepare response with speaker information
       const response = {
         text: transcriptionResult.text,
         audioDuration: 30, // Default duration since our custom service doesn't track this
-        wordCount: words.length,
-        status: "completed"
+        wordCount: wordCount,
+        status: "completed",
+        // Include speaker information if available
+        utterances: formattedResult.utterances || [],
+        speaker_labels: formattedResult.speaker_labels || false,
+        speakers: formattedResult.speakers || []
       };
       
       // Validate response
@@ -149,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: transcriptionResult.text,
         audioUrl: null,
         audioDuration: 30, // Default duration
-        wordCount: words.length,
+        wordCount: wordCount,
         status: "completed"
       });
       
