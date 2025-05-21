@@ -1,28 +1,165 @@
 # WebAudioTranscriber
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9%2B-blue)](https://www.typescriptlang.org/)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
 A web application for transcribing audio files using OpenAI's Whisper and pyannote.audio for speaker diarization. This application allows users to upload audio files, record audio directly, or provide a URL to an audio file, and get transcriptions with speaker identification.
 
-## Features
+## ✨ Features
 
-- **Multiple Input Methods**: Upload audio files, record directly, or provide a URL
-- **Speaker Diarization**: Identify different speakers in the audio
-- **Responsive Design**: Works on both desktop and mobile devices
-- **Modern UI**: Built with React, TypeScript, and TailwindCSS
-- **Fast Processing**: Local processing for quick transcriptions
+- 🎤 **Multiple Input Methods**: Upload audio files, record directly, or provide a URL
+- 🗣️ **Speaker Diarization**: Identify different speakers in the audio
+- 📱 **Responsive Design**: Works on both desktop and mobile devices
+- 🎨 **Modern UI**: Built with React, TypeScript, and TailwindCSS
+- ⚡ **Fast Processing**: Local processing for quick transcriptions
+- 🐳 **Docker Support**: Easy setup with Docker and Docker Compose
 
-## Technologies Used
+## 🚀 Quick Start
 
-- **Frontend**: React, TypeScript, TailwindCSS, Shadcn/UI
-- **Backend**: Express.js, Node.js
-- **Transcription**: OpenAI Whisper, pyannote.audio
-- **Audio Processing**: FFmpeg, pydub
+### Prerequisites
 
-## Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/) (v9 or higher) or [Yarn](https://yarnpkg.com/)
+- [Python](https://www.python.org/) (3.8+)
+- [FFmpeg](https://ffmpeg.org/) (for audio processing)
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (recommended)
 
-- Node.js (v16 or higher)
-- npm or yarn
-- Python 3.8+ (for the transcription script)
-- FFmpeg (for audio processing)
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/shreenxdhi/WebAudioTranscriber.git
+   cd WebAudioTranscriber
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env file with your configuration
+   ```
+
+4. **Start the development server**
+   ```bash
+   # Start both client and server in development mode
+   npm run dev:all
+   ```
+
+   Or using Docker:
+   ```bash
+   docker-compose -f docker-compose.dev.yml up --build
+   ```
+
+5. **Open your browser**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3000
+
+## 🏗️ Project Structure
+
+```
+WebAudioTranscriber/
+├── client/                 # Frontend React application
+│   ├── public/             # Static files
+│   └── src/                # Source files
+│       ├── assets/         # Images, fonts, etc.
+│       ├── components/     # Reusable UI components
+│       ├── hooks/          # Custom React hooks
+│       ├── pages/          # Page components
+│       ├── services/       # API services
+│       ├── styles/         # Global styles
+│       └── utils/          # Utility functions
+│
+├── server/                # Backend Node.js application
+│   ├── config/            # Configuration files
+│   ├── middleware/        # Express middleware
+│   ├── routes/            # API routes
+│   ├── services/          # Business logic
+│   └── utils/             # Utility functions
+│
+├── shared/               # Shared code between frontend and backend
+│   ├── types/             # TypeScript type definitions
+│   └── utils/             # Shared utility functions
+│
+├── config/               # Configuration files
+│   ├── docker/            # Docker configuration
+│   └── nginx/             # Nginx configuration
+│
+├── scripts/              # Build and utility scripts
+├── tests/                 # Test files
+└── docs/                  # Documentation
+```
+
+## 🛠️ Development
+
+### Available Scripts
+
+- `npm run dev` - Start the frontend development server
+- `npm run dev:server` - Start the backend development server
+- `npm run dev:all` - Start both frontend and backend in development mode
+- `npm run build` - Build the application for production
+- `npm start` - Start the production server
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+- `npm test` - Run tests
+
+### Environment Variables
+
+Create a `.env` file in the root directory and add the following variables:
+
+```env
+# Application
+NODE_ENV=development
+PORT=3000
+CLIENT_URL=http://localhost:5173
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/webaudio_transcriber
+
+# Audio Processing
+MAX_FILE_SIZE=52428800  # 50MB
+UPLOAD_DIR=./uploads
+
+# Security
+SESSION_SECRET=your-session-secret
+CORS_ORIGIN=http://localhost:5173
+```
+
+## 🐳 Docker
+
+### Development
+
+```bash
+docker-compose -f docker-compose.dev.yml up --build
+```
+
+### Production
+
+```bash
+docker-compose -f docker-compose.prod.yml up --build -d
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [OpenAI Whisper](https://openai.com/research/whisper) - Speech recognition model
+- [pyannote.audio](https://github.com/pyannote/pyannote-audio) - Speaker diarization
+- [React](https://reactjs.org/) - Frontend library
+- [TypeScript](https://www.typescriptlang.org/) - Type checking
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Express](https://expressjs.com/) - Backend framework
 
 ## Deployment
 

@@ -1,11 +1,79 @@
-# Node.js
-node_modules
+# Dependencies
+node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
 
+# Build files
+/dist
+/build
+/.next
+/out
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+/coverage
+
+# Local development
+.venv
+venv/
+ENV/
+
+# Logs
+logs
+*.log
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Misc
+*.pem
+*.p12
+*.key
+*.crt
+*.cer
+*.p7b
+*.p7c
+*.p7s
+*.p10
+*.pfx
+*.der
+*.crl
+*.srl
+*.sst
+*.stl
+*.tsbuildinfo
+
 # Python
-__pycache__
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -25,28 +93,71 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Environment files
-.env
+# Virtual Environment
 .venv
-env/
 venv/
 ENV/
+
+# Local development
+*.local
+
+# Build output
+.next/
+out/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Build files
-client/dist/
-client/node_modules/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
 
 # Logs
 logs
 *.log
 
 # Local development
-.DS_Store
-Thumbs.db
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

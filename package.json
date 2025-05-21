@@ -4,24 +4,39 @@
   "type": "module",
   "license": "MIT",
   "author": "Shreenidhi Vasishta",
+  "description": "A web application for transcribing audio files with speaker diarization",
+  "keywords": ["transcription", "audio", "whisper", "speaker-diarization", "web"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shreenxdhi/WebAudioTranscriber.git"
+  },
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "npm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "NODE_ENV=development nodemon server/index.js",
-    "start": "NODE_ENV=production node server/index.js",
-    "render-build": "./render-build.sh",
-    "render-start": "./render-start.sh",
-    "build": "cd client && npm install && npm run build",
-    "check": "tsc",
-    "db:push": "drizzle-kit push",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:ci": "npm run lint && npm run check",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepare": "husky install"
+    "dev": "vite",
+    "dev:server": "nodemon --watch server --exec 'tsx' server/index.ts",
+    "dev:all": "concurrently \"npm:dev\" \"npm:dev:server\"",
+    
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "tsc && vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "clean": "rimraf dist build node_modules/.cache",
+    "postinstall": "npm run build",
+    
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\"",
+    "type-check": "tsc --noEmit",
+    "validate": "npm run lint && npm run type-check",
+    
+    "start": "NODE_ENV=production node dist/server/index.js",
+    "preview": "vite preview",
+    "prepare": "husky install",
+    
+    "render-build": "./scripts/render-build.sh",
+    "render-start": "./scripts/render-start.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

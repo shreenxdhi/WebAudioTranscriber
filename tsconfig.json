@@ -1,23 +1,69 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
+    /* Base Options */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    /* Strict Type-Checking */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    
+    /* Additional Checks */
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "react-jsx",
+    
+    /* Module Resolution */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@server/*": ["./server/*"],
+      "@shared/*": ["./shared/*"]
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./client/src/types"
+    ],
+    
+    /* Emit */
+    "outDir": "./dist",
+    "rootDir": ".",
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
-    "module": "ESNext",
-    "strict": true,
-    "lib": ["esnext", "dom", "dom.iterable"],
-    "jsx": "preserve",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
-    "baseUrl": ".",
-    "types": ["node", "vite/client"],
-    "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
-    }
-  }
+    "lib": ["es2020", "dom", "dom.iterable"]
+  },
+  
+  "include": [
+    "client/src/**/*.ts",
+    "client/src/**/*.tsx",
+    "server/**/*.ts",
+    "shared/**/*.ts"
+  ],
+  
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ]
 }

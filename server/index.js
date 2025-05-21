@@ -1,100 +1,68 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const helmet = require('helmet');
-const compression = require('compression');
-const rateLimit = require('express-rate-limit');
-const { exec } = require('child_process');
-const healthRouter = require('./health');
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
 
-// Initialize express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-// Security middleware
-app.use(helmet());
-app.use(cors());
-app.use(compression());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
 
-// Health check endpoint
-app.use('/health', healthRouter);
-
-// API routes
-app.use('/api/transcribe', require('./routes'));
-
-// Serve static files from the React app in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  
-  // Handle React routing, return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-  });
-}
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Something went wrong!',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
-
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  
-  // Log environment information
-  console.log('Environment:', process.env.NODE_ENV || 'development');
-  console.log('Node version:', process.version);
-  
-  // Log Python and FFmpeg versions
-  exec('python3 --version', (pyErr, pyStdout, pyStderr) => {
-    if (!pyErr) {
-      console.log('Python version:', pyStdout.trim());
-    } else {
-      console.error('Python not found or error:', pyStderr || pyErr);
-    }
-    
-    exec('ffmpeg -version', (ffmpegErr, ffmpegStdout) => {
-      if (!ffmpegErr) {
-        const versionLine = ffmpegStdout.split('\n')[0];
-        console.log('FFmpeg version:', versionLine.replace('ffmpeg version', '').trim());
-      } else {
-        console.error('FFmpeg not found or error:', ffmpegErr);
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-    });
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
   });
+
+  next();
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  server.close(() => process.exit(1));
-});
+(async () => {
+  const server = await registerRoutes(app);
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  server.close(() => process.exit(1));
-});
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-// Handle SIGTERM for graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated');
+    res.status(status).json({ message });
+    throw err;
   });
-});
 
-module.exports = server;
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // Changed port from 5000 to 5001 to avoid conflicts with macOS Control Center
+  const port = 5001;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
