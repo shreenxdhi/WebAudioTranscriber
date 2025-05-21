@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { ThemeProvider } from "./lib/ThemeProvider";
 
 // Material Icons CSS
 const materialIconsLink = document.createElement("link");
@@ -19,4 +20,8 @@ const titleElement = document.createElement("title");
 titleElement.textContent = "Voice Transcriber - Shreenidhi Vasishta";
 document.head.appendChild(titleElement);
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ThemeProvider>
+    <App />
+  </ThemeProvider>
+);

@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Landing from "@/pages/Landing";
 import { Button } from "@/components/ui/button";
 import GetStartedGuide from "@/components/GetStartedGuide";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useState } from "react";
 
 // Navigation component for app pages
@@ -15,7 +16,7 @@ const AppNav = () => {
   const [showGuide, setShowGuide] = useState(false);
   
   return (
-    <div className="bg-white border-b">
+    <div className="bg-background border-b">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/">
           <span className="text-xl font-bold text-primary flex items-center cursor-pointer">
@@ -24,6 +25,7 @@ const AppNav = () => {
           </span>
         </Link>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <GetStartedGuide 
             trigger={
               <Button variant="outline" size="sm">
