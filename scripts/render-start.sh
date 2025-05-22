@@ -23,7 +23,7 @@ chmod +x server/transcribe_audio.py
 
 # Start the application
 echo "🚀 Starting Node.js application..."
-exec npm run start
+exec node server/index.js
 
 echo "❌ Application failed to start"
 exit 1
