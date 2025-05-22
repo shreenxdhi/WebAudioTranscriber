@@ -15,7 +15,7 @@ pip install -r requirements.txt
 
 # Install Node.js dependencies
 echo "📦 Installing Node.js dependencies..."
-npm ci
+npm ci --legacy-peer-deps
 
 # Install missing type definitions
 echo "📦 Installing additional type definitions..."

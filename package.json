@@ -17,9 +17,9 @@
     "url": "https://github.com/shreenxdhi/WebAudioTranscriber.git"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  },
+       "node": ">=20.0.0",
+       "npm": ">=10.0.0"
+    },
   "scripts": {
     "dev": "vite",
     "dev:server": "nodemon --watch server --exec 'tsx' server/index.ts",
@@ -103,7 +103,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "drizzle-kit": "^0.20.14",
-    "drizzle-orm": "^0.29.4",
+    "drizzle-orm": "^0.39.1",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
     "file-type": "^18.10.1",
