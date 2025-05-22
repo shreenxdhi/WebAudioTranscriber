@@ -5,7 +5,84 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9%2B-blue)](https://www.typescriptlang.org/)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
-A web application for transcribing audio files using OpenAI's Whisper and pyannote.audio for speaker diarization. This application allows users to upload audio files, record audio directly, or provide a URL to an audio file, and get transcriptions with speaker identification.
+A web application for transcribing audio files with speaker diarization capabilities.
+
+## Features
+
+- Upload audio files or provide URLs for transcription
+- Record audio directly within the browser
+- Automatic speaker diarization (identifies different speakers in the audio)
+- Download transcriptions in various formats
+- Clean, modern UI with dark/light mode support
+
+## Technology Stack
+
+- **Frontend**: React with TypeScript, TailwindCSS, Shadcn/UI
+- **Backend**: Node.js, Express
+- **Speech Recognition**: Whisper (OpenAI)
+- **Speaker Diarization**: pyannote.audio
+- **Database**: SQLite (local development), PostgreSQL (production)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- Python 3.8+
+- FFmpeg
+
+### Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/shreenxdhi/WebAudioTranscriber.git
+   cd WebAudioTranscriber
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   pip install -r requirements.txt
+   ```
+
+3. Create a `.env` file with your configuration
+   ```
+   # Required for speaker diarization
+   HF_TOKEN=your_huggingface_token
+   
+   # Optional: Set the Whisper model (tiny, base, small, medium, large)
+   WHISPER_MODEL=base
+   
+   # Application settings
+   NODE_ENV=development
+   PORT=3000
+   ```
+
+4. Start the development server
+   ```bash
+   npm run dev
+   ```
+
+## Deployment
+
+This project is configured for easy deployment to Render.com:
+
+1. Create a new Web Service on Render
+2. Link your GitHub repository
+3. Set the required environment variables
+4. Choose the `render-deploy` branch for deployment
+
+For detailed deployment instructions, see [RENDER_DEPLOYMENT.md](docs/RENDER_DEPLOYMENT.md).
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- OpenAI Whisper for speech recognition
+- pyannote.audio for speaker diarization
+- FFmpeg for audio processing
 
 ## ✨ Features
 
@@ -405,35 +482,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    - **Name**: WebAudioTranscriber (or your preferred name)
    - **Environment**: Node
    - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `npm start`
-   - **Plan**: Choose appropriate plan (Free tier works for testing)
-
-4. Add the following environment variables in Render:
-   - `DATABASE_URL` (Your NeonDB connection string)
-   - `SESSION_SECRET` (A secure random string)
-   - `NODE_ENV` = production
-
-5. Deploy your application
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## About the Author
-
-Developed by **Shreenidhi Vasishta**.
-
-## Acknowledgements
-
-- [Shadcn/UI](https://ui.shadcn.com/) for UI components
-- [TailwindCSS](https://tailwindcss.com/) for styling
-- [React](https://reactjs.org/) for the frontend framework
-- [Express](https://expressjs.com/) for the backend framework 
