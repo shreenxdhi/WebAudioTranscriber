@@ -15,14 +15,11 @@ pip install -r requirements.txt
 
 # Install Node.js dependencies
 echo "📦 Installing Node.js dependencies..."
-npm ci --include=dev
-
-# Build the client
-echo "🔨 Building client..."
-cd client
 npm ci
+
+# Build the application
+echo "🔨 Building application..."
 npm run build
-cd ..
 
 # Create necessary directories
 echo "📂 Creating directories..."
@@ -31,8 +28,9 @@ mkdir -p uploads
 # Set file permissions
 echo "🔒 Setting permissions..."
 chmod -R 777 uploads
+chmod +x server/transcribe_audio.py
 
-# Install Whisper model (small model for Render's free tier)
+# Install Whisper model (base model)
 echo "🤖 Downloading Whisper model (base)..."
 python -c "import whisper; whisper.load_model('base')"
 

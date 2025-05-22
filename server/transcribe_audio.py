@@ -56,8 +56,8 @@ except ImportError:
 
 # Model constants
 WHISPER_MODEL = "base"  # Options: tiny, base, small, medium, large
-DIARIZATION_MODEL = "pyannote/speaker-diarization-3.1"
-# Using environment variable for the token or empty string if not set
+DIARIZATION_MODEL = "pyannote/speaker-diarization"
+# Using environment variable for the token
 HF_TOKEN = os.environ.get("HF_TOKEN", "")  # Get from environment variable
 
 def format_timestamp(seconds: float) -> str:

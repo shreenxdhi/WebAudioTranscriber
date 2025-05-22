@@ -14,13 +14,16 @@ mkdir -p uploads
 # Set file permissions
 chmod -R 777 uploads
 
-# Run database migrations if needed
-# echo "🔄 Running database migrations..."
-# npx prisma migrate deploy
+# Set environment variables
+export NODE_ENV=production
+export PORT=${PORT:-3000}
+
+# Make Python script executable
+chmod +x server/transcribe_audio.py
 
 # Start the application
 echo "🚀 Starting Node.js application..."
-exec node server/index.js
+exec npm run start
 
 echo "❌ Application failed to start"
 exit 1
