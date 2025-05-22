@@ -9,12 +9,9 @@ import Landing from "@/pages/Landing";
 import { Button } from "@/components/ui/button";
 import GetStartedGuide from "@/components/GetStartedGuide";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { useState } from "react";
 
 // Navigation component for app pages
 const AppNav = () => {
-  const [showGuide, setShowGuide] = useState(false);
-  
   return (
     <div className="bg-background border-b">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">

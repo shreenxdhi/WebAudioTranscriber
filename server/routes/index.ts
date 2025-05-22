@@ -1,13 +1,13 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "../services/storage.js";
 import multer from "multer";
 import { z } from "zod";
 import { audioUrlSchema, transcriptionResponseSchema } from "@shared/schema";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { transcribeFromUrl, transcribeFromFile, formatTranscriptionResult } from "./transcriptionService";
+import { transcribeFromUrl, transcribeFromFile, formatTranscriptionResult } from "../services/transcriptionService.js";
 
 // Configure multer for file uploads
 const upload = multer({

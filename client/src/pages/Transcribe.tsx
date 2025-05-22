@@ -1,10 +1,12 @@
-import React from 'react';
-import { useTranscription } from '../contexts/TranscriptionContext';
-import { PageHeader } from '../components/PageHeader';
-import { Card, CardContent } from '../components/ui/card';
-import { TranscriptionForm } from '../components/TranscriptionForm';
-import { TranscriptionResult } from '../components/TranscriptionResult';
-import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useTranscription } from '@/hooks/useTranscription';
+import TranscriptionResult from '@/components/Transcription/TranscriptionResult';
+import AudioFileUpload from '@/components/Transcription/AudioFileUpload';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Transcribe() {
   const {
@@ -26,88 +28,150 @@ export default function Transcribe() {
     // Methods
     startTranscription,
     resetTranscription,
+    isInputValid,
   } = useTranscription();
 
-  const renderContent = () => {
-    if (transcriptionStatus === "idle") {
-      return (
-        <TranscriptionForm
-          inputMethod={inputMethod}
-          setInputMethod={setInputMethod}
-          selectedFile={selectedFile}
-          setSelectedFile={setSelectedFile}
-          audioUrl={audioUrl}
-          setAudioUrl={setAudioUrl}
-          speechModel={speechModel}
-          setSpeechModel={setSpeechModel}
-          startTranscription={startTranscription}
-          isTranscribing={transcriptionStatus === "loading"}
-          isValid={selectedFile !== null || audioUrl !== ""}
-        />
-      );
-    }
-    
-    if (transcriptionStatus === "loading") {
-      return (
-        <div className="flex flex-col items-center justify-center p-10 text-center">
-          <div className="w-16 h-16 mb-6">
-            <svg className="animate-spin w-full h-full text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-          <h3 className="text-xl font-medium mb-2">Transcribing your audio</h3>
-          <p className="text-muted-foreground">
-            This may take a moment depending on the length of your audio...
-          </p>
-        </div>
-      );
-    }
-    
-    if (transcriptionStatus === "error") {
-      return (
-        <div className="flex flex-col items-center justify-center p-10 text-center">
-          <div className="w-16 h-16 mb-6 text-red-500 dark:text-red-400">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-medium mb-2">Transcription Failed</h3>
-          <p className="text-muted-foreground mb-6">
-            {errorMessage || "An error occurred while transcribing your audio."}
-          </p>
-          <Button onClick={resetTranscription}>Try Again</Button>
-        </div>
-      );
-    }
-    
-    // Success state
-    if (transcriptionData) {
-      return (
-        <TranscriptionResult 
-          transcriptionData={transcriptionData}
-          resetTranscription={resetTranscription}
-        />
-      );
-    }
-    
-    return null;
-  };
+  const isTranscribing = transcriptionStatus === 'transcribing';
 
   return (
-    <div className="w-full">
-      <PageHeader
-        heading="Transcribe Audio"
-        text="Convert your audio to text with powerful speech recognition technology"
-      />
+    <div className="container mx-auto px-4 py-8">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Transcribe Audio</CardTitle>
+          <p className="text-muted-foreground">Upload an audio file or enter a URL to transcribe</p>
+        </CardHeader>
+      </Card>
 
-      <div className="container py-6 space-y-8">
-        <Card className="border border-border bg-card/50">
-          <CardContent className="pt-6">
-            {renderContent()}
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          <Card>
+            <CardContent className="pt-6">
+              <Tabs 
+                value={inputMethod} 
+                onValueChange={(value) => setInputMethod(value as 'upload' | 'url')}
+                className="space-y-4"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload">Upload</TabsTrigger>
+                  <TabsTrigger value="url">URL</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="upload" className="space-y-4">
+                  <AudioFileUpload 
+                    selectedFile={selectedFile} 
+                    setSelectedFile={setSelectedFile} 
+                  />
+                </TabsContent>
+
+                <TabsContent value="url" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="audioUrl">Audio URL</Label>
+                    <Input
+                      id="audioUrl"
+                      type="url"
+                      value={audioUrl}
+                      onChange={(e) => setAudioUrl(e.target.value)}
+                      placeholder="https://example.com/audio.mp3"
+                    />
+                  </div>
+                </TabsContent>
+
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="speechModel">Speech Model</Label>
+                    <Select 
+                      value={speechModel} 
+                      onValueChange={(value) => setSpeechModel(value as 'base' | 'best')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="base">Base (Faster)</SelectItem>
+                        <SelectItem value="best">Best Quality</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button 
+                    className="w-full" 
+                    onClick={startTranscription}
+                    disabled={!isInputValid || isTranscribing}
+                  >
+                    {isTranscribing ? 'Transcribing...' : 'Transcribe'}
+                  </Button>
+                  
+                  {transcriptionStatus !== 'idle' && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={resetTranscription}
+                    >
+                      Start Over
+                    </Button>
+                  )}
+                </div>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2">
+          {transcriptionStatus === 'transcribing' && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Transcribing your audio...</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {transcriptionStatus === 'error' && (
+            <Card className="border-destructive">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 text-destructive">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="flex-shrink-0"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <div>
+                    <h3 className="font-medium">Error</h3>
+                    <p className="text-sm">{errorMessage || 'An error occurred during transcription'}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={resetTranscription}
+                >
+                  Try Again
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {(transcriptionStatus === 'completed' || transcriptionStatus === 'error') && transcriptionData && (
+            <TranscriptionResult
+              status={transcriptionStatus}
+              data={transcriptionData}
+              errorMessage={errorMessage}
+              resetTranscription={resetTranscription}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
-} 
+}

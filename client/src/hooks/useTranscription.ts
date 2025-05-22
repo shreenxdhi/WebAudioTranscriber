@@ -5,7 +5,7 @@ import { type TranscriptionResponse } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export type InputMethod = "upload" | "url" | "record";
-export type TranscriptionStatus = "idle" | "loading" | "success" | "error";
+export type TranscriptionStatus = 'idle' | 'transcribing' | 'completed' | 'error';
 export type SpeechModel = "base" | "best";
 
 export const useTranscription = () => {
@@ -50,7 +50,7 @@ export const useTranscription = () => {
     },
     onSuccess: (data) => {
       setTranscriptionData(data);
-      setTranscriptionStatus("success");
+      setTranscriptionStatus("completed");
       toast({
         title: "Transcription complete",
         description: "Your audio has been successfully transcribed",
@@ -89,7 +89,7 @@ export const useTranscription = () => {
     },
     onSuccess: (data) => {
       setTranscriptionData(data);
-      setTranscriptionStatus("success");
+      setTranscriptionStatus("completed");
       toast({
         title: "Transcription complete",
         description: "Your audio has been successfully transcribed",
@@ -110,7 +110,7 @@ export const useTranscription = () => {
   const startTranscription = () => {
     if (!isInputValid) return;
     
-    setTranscriptionStatus("loading");
+    setTranscriptionStatus("transcribing");
     
     if (inputMethod === 'url') {
       if (audioUrl) {
@@ -146,7 +146,7 @@ export const useTranscription = () => {
     errorMessage,
     
     // Derived state
-    isTranscribing: transcriptionStatus === "loading",
+    isTranscribing: transcriptionStatus === "transcribing",
     isInputValid,
     
     // Methods
