@@ -1,0 +1,9 @@
+# Web Audio Transcriber Python Requirements
+# These are the dependencies for the audio transcription functionality
+
+# Include the server requirements
+-r server/requirements.txt
+
+# Additional dependencies that might be needed for deployment
+setuptools>=65.5.0
+wheel>=0.38.4 

@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  reverse-proxy:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+      # Uncomment to enable the dashboard (only for development)
+      # - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/config:/etc/traefik
+      - ./traefik/certs:/etc/certs
+      - ./traefik/logs:/var/log/traefik
+    environment:
+      - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
+      - CF_API_KEY=${CLOUDFLARE_API_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=admin-ipwhitelist@file"
+      - "traefik.http.routers.traefik.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik.tls.domains[0].main=*.${DOMAIN}"
+      - "traefik.http.routers.traefik.tls.domains[0].sans=${DOMAIN}"
+
+  web:
+    extends:
+      file: docker-compose.yml
+      service: web
+    networks:
+      - proxy
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.constraint-label=proxy"
+      - "traefik.http.routers.webaudio-http.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.webaudio-http.entrypoints=web"
+      - "traefik.http.routers.webaudio-http.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.webaudio.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.webaudio.entrypoints=websecure"
+      - "traefik.http.routers.webaudio.tls.certresolver=cloudflare"
+      - "traefik.http.routers.webaudio.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.services.webaudio.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.webaudio-headers.headers.sslredirect=true"
+      - "traefik.http.middlewares.webaudio-headers.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.webaudio-headers.headers.stspreload=true"
+      - "traefik.http.middlewares.webaudio-headers.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.webaudio-headers.headers.forcestsheader=true"
+      - "traefik.http.middlewares.webaudio-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.webaudio-gzip.compress=true"
+      - "traefik.http.routers.webaudio.middlewares=webaudio-headers,webaudio-gzip"
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+  default:
+    driver: bridge

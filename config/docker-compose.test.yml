@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  test:
+    build:
+      context: .
+      target: development
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm test
+    
+  # Test database if needed
+  # test-db:
+  #   image: postgres:13
+  #   environment:
+  #     POSTGRES_USER: test
+  #     POSTGRES_PASSWORD: test
+  #     POSTGRES_DB: transcriber_test
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U test"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
+  # E2E testing with Playwright
+  # e2e:
+  #   build:
+  #     context: .
+  #     target: development
+  #   environment:
+  #     - NODE_ENV=test
+  #     - CI=true
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - test-db
+  #   command: npm run test:e2e

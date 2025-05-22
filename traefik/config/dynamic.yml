@@ -1,0 +1,65 @@
+# Dynamic configuration for Traefik
+http:
+  # Global middlewares
+  middlewares:
+    # Redirect HTTP to HTTPS
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    
+    # Security headers
+    security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 15552000
+        frameDeny: true
+        sslRedirect: true
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+    
+    # IP Whitelist for admin access (replace with your IPs)
+    admin-ipwhitelist:
+      ipWhiteList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "192.168.1.0/24"
+    
+    # Rate limiting
+    ratelimit:
+      rateSet:
+        default:
+          period: 1m
+          average: 100
+          burst: 200
+    
+    # Compress responses
+    compress:
+      compress: {}
+
+  # Routers configuration
+  routers:
+    # Default router configuration
+    default-headers: {}
+
+  # Services configuration
+  services:
+    # Default service configuration
+    default-service:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: default-transport
+
+# Servers transport configuration
+serversTransports:
+  default-transport:
+    insecureSkipVerify: true
+    maxIdleConnsPerHost: 200
+    forwardTimeouts:
+      dialTimeout: 10s
+      responseHeaderTimeout: 10s

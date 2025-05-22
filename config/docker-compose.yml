@@ -1,0 +1,92 @@
+version: '3.8'
+
+# This is the base docker-compose configuration that other compose files will extend.
+# Use the appropriate compose file for your needs:
+# - docker-compose.dev.yml: For development with hot-reloading
+# - docker-compose.prod.yml: For production deployment
+# - docker-compose.test.yml: For running tests
+# - docker-compose.build.yml: For building different environment images
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${TARGET:-production}
+    image: webaudio-transcriber:${TAG:-latest}
+    container_name: webaudio-transcriber
+    restart: unless-stopped
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
+    
+    # Environment variables can be set in .env file or here
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - DEVICE=${DEVICE:-cpu}
+      - HF_TOKEN=${HF_TOKEN:-}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-52428800}
+    
+    # Ports mapping
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}/{{.ID}}"
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Volumes for persistent data
+    volumes:
+      - app_data:/app/data
+      - ./logs:/app/logs
+    
+    # Uncomment to use GPU acceleration
+    # runtime: nvidia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+# Define volumes for persistent data
+volumes:
+  app_data:
+    driver: local
+  # Uncomment if using database
+  # postgres_data:
+  #   driver: local
+  # redis_data:
+  #   driver: local
+
+# Define networks
+networks:
+  default:
+    driver: bridge
+    name: webaudio-transcriber-network

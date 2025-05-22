@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: web-audio-transcriber
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: ./scripts/render-build.sh
+    startCommand: ./scripts/render-start.sh
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: HF_TOKEN
+        sync: false
+    autoDeploy: true
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1 

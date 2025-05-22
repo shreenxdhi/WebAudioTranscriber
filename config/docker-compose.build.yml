@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Production build
+  web:
+    build:
+      context: .
+      target: production
+      args:
+        NODE_ENV: production
+        NPM_TOKEN: ${NPM_TOKEN:-}
+    image: webaudio-transcriber:${TAG:-latest}
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    # Uncomment for production secrets
+    # secrets:
+    #   - db_password
+    #   - api_key
+
+  # Development build
+  dev:
+    build:
+      context: .
+      target: development
+      args:
+        NODE_ENV: development
+    image: webaudio-transcriber:dev
+    environment:
+      - NODE_ENV=development
+      - DEBUG=app:*,server:*
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Test build
+  test:
+    build:
+      context: .
+      target: test
+      args:
+        NODE_ENV: test
+    image: webaudio-transcriber:test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    command: npm test
+
+# Uncomment for production secrets
+# secrets:
+#   db_password:
+#     file: ./secrets/db_password.txt
+#   api_key:
+#     file: ./secrets/api_key.txt
